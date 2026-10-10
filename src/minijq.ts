@@ -12,40 +12,93 @@ export type Filtre = (entree: JsonValue) => Resultat;
 export type Resultat = { resultats: JsonValue[] };
 
 export function resultat(resultats: JsonValue[]): Resultat {
-
+    return {
+        resultats
+    };
 }
 
 export function estString(json: JsonValue): json is string {
+    return typeof json === "string";
 }
 
 export function estNumber(json: JsonValue): json is number {
+    return typeof json === "number";
 }
 
 export function estBoolean(json: JsonValue): json is boolean {
+    return typeof json === "boolean";
 }
 
 export function estNull(json: JsonValue): json is null {
+    return json === null;
 }
 
 export function estPrimitive(json: JsonValue): json is JsonPrimitive {
+    return estString(json) || estNumber(json) || estBoolean(json) || estNull(json);
 }
 
 export function estObjet(json: JsonValue): json is JsonObject {
+    return typeof json === "object"
+        && !estNull(json)
+        && !Array.isArray(json);
 }
 
 export function estTableau(json: JsonValue): json is JsonValue[] {
+    return Array.isArray(json);
 }
 
 export function cle(nom: string): Filtre {
+    return (entree: JsonValue) => {
+        if (estObjet(entree)) {
+            if (nom in entree)
+                return resultat([entree[nom]]);
+        }
+        return resultat([]);
+    }
 }
 
 export function minijq(i: number): Filtre {
+    return (entree: JsonValue) => {
+        if (estTableau(entree)) {
+            if (i < entree.length && i >= 0)
+                return resultat([entree[i]]);
+        }
+        return resultat([]);
+    }
 }
 
 export function tous(): Filtre {
+    return (entree: JsonValue) => {
+        if (estTableau(entree))
+            return resultat(entree);
+        if (estObjet(entree))
+            return resultat(Object.values(entree));
+        return resultat([]);
+    }
 }
 
 export function trouverPremier(nom: string): Filtre {
+    return (entree: JsonValue) => {
+        function chercher(
+            aExplorer: JsonValue[],
+            resultatTrouve: boolean
+        ): Resultat {
+            if(!resultatTrouve){
+                if(estObjet(aExplorer)){
+                    let val = cle(nom)(aExplorer)
+                    if(estNull(entree))
+                        resultatTrouve = true;
+                }
+                else if(estTableau(aExplorer)){
+
+                }
+            }
+            else{
+
+            }
+            return chercher([entree], resultatTrouve);
+        }
+    }
 }
 
 export function descendre(nom: string): Filtre {
