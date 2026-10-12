@@ -126,13 +126,29 @@ export function descendre(nom: string): Filtre {
 }
 
 export function filtrer(p: (json: JsonValue) => boolean): Filtre {
-
+    return (entree: JsonValue) => {
+        return p(entree)? resultat([entree]) : resultat([]);
+    }
 }
 
 export function transformer(f: (json: JsonValue) => JsonValue): Filtre {
+    return (entree: JsonValue) => {
+        return resultat([f(entree)]);
+    }
 }
 
 export function chaine(...filtres: Filtre[]): Filtre {
+    return (entree: JsonValue) => {
+        return filtres.reduce(
+            (acc, filtre) =>
+                resultat(
+                    acc.resultats.flatMap(
+                        valeur => filtre(valeur).resultats
+                    )
+                ),
+            resultat([entree])
+        );
+    };
 }
 
 // Extrait la liste des titres de tous les cours
