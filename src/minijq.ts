@@ -81,30 +81,52 @@ export function trouverPremier(nom: string): Filtre {
     return (entree: JsonValue) => {
         function chercher(
             aExplorer: JsonValue[],
-            resultatTrouve: boolean
         ): Resultat {
-            if(!resultatTrouve){
-                if(estObjet(aExplorer)){
-                    let val = cle(nom)(aExplorer)
-                    if(estNull(entree))
-                        resultatTrouve = true;
-                }
-                else if(estTableau(aExplorer)){
+            if (aExplorer.length === 0)
+                return resultat([]);
 
-                }
-            }
-            else{
+            const [courant, ...reste] = aExplorer;
 
-            }
-            return chercher([entree], resultatTrouve);
+            if (estObjet(courant) && nom in courant)
+                return resultat([courant[nom]]);
+
+            if (estObjet(courant) || estTableau(courant))
+                return chercher([...tous()(courant).resultats, ...reste]);
+
+            return chercher(reste);
         }
+
+        return chercher([entree]);
     }
 }
 
 export function descendre(nom: string): Filtre {
+    return (entree: JsonValue) => {
+        function chercher(
+            aExplorer: JsonValue[],
+            acc: JsonValue[]
+        ): Resultat {
+            if (aExplorer.length === 0)
+                return resultat(acc);
+
+            const [courant, ...reste] = aExplorer;
+
+            const newAcc = estObjet(courant) && nom in courant
+                ? [...acc, courant[nom]]
+                : acc;
+
+            if (estObjet(courant) || estTableau(courant))
+                return chercher([...tous()(courant).resultats, ...reste], newAcc);
+
+            return chercher(reste, newAcc);
+        }
+
+        return chercher([entree], []);
+    }
 }
 
 export function filtrer(p: (json: JsonValue) => boolean): Filtre {
+
 }
 
 export function transformer(f: (json: JsonValue) => JsonValue): Filtre {
