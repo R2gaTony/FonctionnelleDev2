@@ -155,7 +155,8 @@ export function chaine(...filtres: Filtre[]): Filtre {
 export const titresDesCours: Filtre =
     chaine(
         descendre("cours"),
-        descendre("titre"));
+        descendre("titre")
+    );
 
 // Extrait les sigles des cours où actif === true
 export const siglesCoursActifs: Filtre =
@@ -180,7 +181,7 @@ export const personnesEtudiantes85: Filtre =
 
 // Crée un sélecteur qui trouve le premier bureau d'un enseignant du cours avec le sigle reçu en paramètre
 export const premierBureau: (sigle: string) => Filtre =
-    (sigle) =>
+    sigle =>
         chaine(
             descendre("cours"),
             tous(),
