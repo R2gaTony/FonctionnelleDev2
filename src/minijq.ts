@@ -127,7 +127,7 @@ export function descendre(nom: string): Filtre {
 
 export function filtrer(p: (json: JsonValue) => boolean): Filtre {
     return (entree: JsonValue) => {
-        return p(entree)? resultat([entree]) : resultat([]);
+        return p(entree) ? resultat([entree]) : resultat([]);
     }
 }
 
@@ -152,44 +152,44 @@ export function chaine(...filtres: Filtre[]): Filtre {
 }
 
 // Extrait la liste des titres de tous les cours
-export const titresDesCours: Filtre;
+export const titresDesCours: Filtre =
+    chaine(
+        descendre("cours"),
+        descendre("titre"));
 
 // Extrait les sigles des cours où actif === true
-export const siglesCoursActifs: Filtre;
+export const siglesCoursActifs: Filtre =
+    chaine(
+        descendre("cours"),
+        tous(),
+        filtrer(a => cle("actif")(a).resultats[0] === true),
+        descendre("sigle")
+    );
 
 // Recherche dans tous les cours, les noms des personnes étudiantes ayant une note >= 85
-export const personnesEtudiantes85: Filtre;
+export const personnesEtudiantes85: Filtre =
+    chaine(
+        descendre("etudiants"),
+        tous(),
+        filtrer(n => {
+            const note = cle("note")(n).resultats[0];
+            return estNumber(note) ? note >= 85 : false;
+        }),
+        descendre("nom")
+    );
 
 // Crée un sélecteur qui trouve le premier bureau d'un enseignant du cours avec le sigle reçu en paramètre
-export const premierBureau: (sigle: string) => Filtre;
+export const premierBureau: (sigle: string) => Filtre =
+    (sigle) =>
+        chaine(
+            descendre("cours"),
+            tous(),
+            filtrer(s => cle("actif")(s).resultats[0] === sigle),
+            descendre("enseignants"),
+            trouverPremier("bureau")
+        );
 
 // Fonction utilitaire pour afficher un JsonValue
 export function afficher(json: JsonValue) {
     console.log(JSON.stringify(json));
 }
-
-const value: JsonValue = {
-    departement: "Informatique",
-    cours: [
-        {
-            sigle: "IFT359",
-            titre: "Programmation Fonctionnelle",
-            actif: true,
-            enseignants: [
-                {nom: "Professeur A", bureau: "D1-2004"},
-                {nom: "Chargé de cours X", bureau: "D1-2006"},
-            ],
-            etudiants: [
-                {nom: "Alice", note: 88},
-                {nom: "Bob", note: 62},
-            ],
-        },
-        {
-            sigle: "IFT209",
-            titre: "Structures de Données",
-            actif: false,
-            enseignants: [{nom: "Professeur B", bureau: "D1-2010"}],
-            etudiants: [{nom: "Charlie", note: 94}],
-        },
-    ],
-};
